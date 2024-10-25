@@ -2,3 +2,50 @@
 https://getbootstrap.com/docs/5.3/forms/form-control/#example
 https://getbootstrap.com/docs/5.3/forms/select/#default
 https://getbootstrap.com/docs/5.3/forms/select/#default -->
+<form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="client">Cliente</label>
+    <input id="client" formControlName="client" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label for="date">Fecha de Cotización</label>
+    <input type="date" id="date" formControlName="date" class="form-control" required>
+    <div *ngIf="budgetForm.get('date')?.hasError('maxDate')" class="text-danger">
+      La fecha no puede ser futura.
+    </div>
+  </div>
+
+  <div formArrayName="modules">
+    <div *ngFor="let module of modules.controls; let i = index" [formGroupName]="i" class="card mb-2">
+      <div class="card-body">
+        <div class="form-row">
+          <div class="col">
+            <label>Tipo de Módulo</label>
+            <select formControlName="moduleType" class="form-control">
+              <option *ngFor="let moduleType of moduleTypes" [value]="moduleType.id">{{ moduleType.name }}</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Ambiente</label>
+            <select formControlName="zone" class="form-control">
+              <option *ngFor="let zone of zones" [value]="zone">{{ zone }}</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Precio</label>
+            <input type="text" formControlName="price" class="form-control" readonly>
+          </div>
+          <div class="col">
+            <label>Slots</label>
+            <input type="text" formControlName="slots" class="form-control" readonly>
+          </div>
+          <button type="button" class="btn btn-danger" (click)="removeModule(i)">Eliminar</button>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="addModule()">Añadir Módulo</button>
+  </div>
+
+  <button type="submit" class="btn btn-success" [disabled]="budgetForm.invalid">Guardar Cotización</button>
+</form>
