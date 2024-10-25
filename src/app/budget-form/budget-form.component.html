@@ -2,3 +2,40 @@
 https://getbootstrap.com/docs/5.3/forms/form-control/#example
 https://getbootstrap.com/docs/5.3/forms/select/#default
 https://getbootstrap.com/docs/5.3/forms/select/#default -->
+<form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label>Fecha de la Cotización:</label>
+    <input formControlName="date" type="date" />
+    @if (budgetForm.get('date')?.invalid&& budgetForm.get('date')?.touched){
+      <div>Fecha inválida.</div>
+    }
+
+  </div>
+
+  <div>
+    <label>Cliente:</label>
+    <input formControlName="client" type="text" />
+    <div *ngIf="budgetForm.get('client')?.invalid && budgetForm.get('client')?.touched">Cliente requerido.</div>
+  </div>
+
+  <div formArrayName="modules">
+    <div *ngFor="let module of modules.controls; let i = index" [formGroupName]="i">
+      <label>Módulo:</label>
+      <select formControlName="moduleType">
+        <option *ngFor="let moduleType of moduleTypes" [value]="moduleType.id">
+          {{ moduleType.name }} - {{ moduleType.price | currency }}
+        </option>
+      </select>
+
+      <label>Ambiente:</label>
+      <select formControlName="zone">
+        <option *ngFor="let zone of zones" [value]="zone">{{ zone }}</option>
+      </select>
+
+      <button (click)="modules.removeAt(i)" type="button" *ngIf="modules.length > 5">Eliminar</button>
+    </div>
+  </div>
+
+  <button type="button" (click)="addModule()">Agregar Módulo</button>
+  <button type="submit" [disabled]="budgetForm.invalid">Guardar</button>
+</form>
