@@ -1,16 +1,16 @@
 import {Component, inject} from '@angular/core';
-import {FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators,} from '@angular/forms';
+import {CurrencyPipe, KeyValuePipe} from '@angular/common';
 import {ModuleType, Zone} from '../models/budget';
-import {HttpClient} from '@angular/common/http';
-import {Router} from '@angular/router';
-import {CurrencyPipe} from '@angular/common';
+
 
 @Component({
   selector: 'app-budget-form',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    CurrencyPipe
+    CurrencyPipe,
+    KeyValuePipe
   ],
   templateUrl: './budget-form.component.html',
   styleUrl: './budget-form.component.css',
@@ -22,56 +22,62 @@ export class BudgetFormComponent {
   */
 
   budgetForm!: FormGroup;
-  moduleTypes: ModuleType[]=[];
+  moduleTypes: ModuleType[] = []; // Aquí se cargará la lista de tipos de módulos desde el JSON Server
+  zones = Object.values(Zone); // Enum convertido en array para el select
 
-  zones = Object.values(Zone);
+  constructor(private fb: FormBuilder) {}
 
-  //services
-  private formBuilder = inject(FormBuilder);
-  // private http = inject(HttpClient)
-  private router= inject(Router);
+  ngOnInit(): void {
+    this.budgetForm = this.fb.group({
+      client: ['', Validators.required],
+      date: ['', [Validators.required, this.maxDateValidator]],
+      modules: this.fb.array([], Validators.minLength(5)), // Se asegura que haya al menos 5 módulos
+    });
 
-  constructor(private http: HttpClient) {
+    // Aquí llamarías a la API para cargar `moduleTypes`
   }
 
-  ngOnInit() {
-    this.budgetForm = this.formBuilder.group({
-      date: [new Date(), [Validators.required]],
-      client:['',Validators.required],
-      modules: this.formBuilder.array([],Validators.minLength(5))
-    })
-    this.loadModulesType()
-    this.addModule()
-  }
-
-  get modules() {
+  get modules(): FormArray {
     return this.budgetForm.get('modules') as FormArray;
   }
 
+  // Método para añadir un módulo
   addModule() {
-    const moduleForm = this.formBuilder.group({
-      ModuleType:['', Validators.required],
-      zone:['',Validators.required]
-    })
+    const moduleForm = this.fb.group({
+      moduleType: ['', Validators.required],
+      zone: ['', Validators.required],
+      price: [{ value: 0, disabled: true }],
+      slots: [{ value: 0, disabled: true }]
+    });
+
+    moduleForm.get('moduleType')?.valueChanges.subscribe((moduleId) => {
+      if (moduleId !== null) {
+        const selectedModule = this.moduleTypes.find(mod => mod.id === +moduleId);
+        if (selectedModule) {
+          moduleForm.patchValue({
+            price: selectedModule.price,
+            slots: selectedModule.slots
+          });
+        }
+      }
+    });
+
     this.modules.push(moduleForm);
   }
 
-  loadModulesType() {
-    this.http.get<ModuleType[]>('http://localhost:3000/api/module-types').subscribe(data=>{
-      this.moduleTypes = data;
-    })
+  // Método para remover un módulo
+  removeModule(index: number) {
+    this.modules.removeAt(index);
   }
 
-  validateDate(control:FormControl) {
-    return new Date(control.value) <= new Date() ? null: {invalidDate:true}
+  // Validador personalizado para la fecha
+  maxDateValidator(control: AbstractControl) {
+    const today = new Date();
+    const selectedDate = new Date(control.value);
+    return selectedDate > today ? { maxDate: true } : null;
   }
 
   onSubmit() {
-    if (this.budgetForm.valid) {
-      const budfetData = this.budgetForm.value
-      this.http.post('http://localhost:3000/api/budgets', budfetData).subscribe(data=>{
-        this.router.navigate(['/']);
-      })
-    }
+
   }
 }

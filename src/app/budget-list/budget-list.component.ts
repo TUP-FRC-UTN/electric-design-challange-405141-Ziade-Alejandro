@@ -1,9 +1,15 @@
 import { Component } from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {CurrencyPipe, DatePipe} from '@angular/common';
 
 @Component({
   selector: 'app-budget-list',
   standalone: true,
-  imports: [],
+  imports: [
+    RouterLink,
+    DatePipe,
+    CurrencyPipe
+  ],
   templateUrl: './budget-list.component.html',
   styleUrl: './budget-list.component.css',
 })

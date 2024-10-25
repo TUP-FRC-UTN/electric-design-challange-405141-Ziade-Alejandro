@@ -7,13 +7,16 @@ export const routes: Routes = [
   {
     path: '',component:BudgetListComponent
   },
+  // {
+  //   path: 'form',loadComponent:()=> import('./budget-form/budget-form.component').then(m=>m.BudgetFormComponent),
+  // },
   {
-    path: 'form',loadComponent:()=> import('./budget-form/budget-form.component').then(m=>m.BudgetFormComponent),
+  path:'form',component:BudgetFormComponent
   },
   {
     path: 'preview:id',loadComponent:() => import('./budget-view/budget-view.component').then(m=>m.BudgetViewComponent)
   },
-  // {
-  //   path: '**',component:BudgetListComponent
-  // }
+  {
+    path: '**',component:BudgetListComponent
+  }
 ];
